@@ -1,0 +1,13 @@
+This is libpbo, version 0.0.0
+A library to work with Arma PBO files
+
+Quickstart:
+run ./autogen.sh to setup the autohell
+afterwards, usual ./configure ; make ; make install stuff applies
+
+See INSTALL for generic autohell compile/install instructions.
+
+(C) 2015 Emir Marincic <>
+Contact: 
+
+See COPYING for license information
