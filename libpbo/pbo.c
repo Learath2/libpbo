@@ -45,7 +45,7 @@ struct pbo {
     size_t headersz;
     struct list_entry *root;
     struct list_entry *last;
-    const char *filename;
+    char *filename;
 };
 
 static struct list_entry *pbo_find_file(pbo_t d, const char *file);
@@ -53,6 +53,7 @@ static int pbo_util_getdelim(unsigned char *dst, FILE *src, size_t dstsz, char d
 static char *pbo_util_strdup(const char *src);
 static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe);
 static void pbo_add_header_extension(struct header_extension *he, const char *e);
+static void pbo_clear_list(pbo_t d);
 
 pbo_t pbo_init(const char *filename)
 {
@@ -61,30 +62,26 @@ pbo_t pbo_init(const char *filename)
         return NULL; //Malloc Error
     d->root = NULL;
     d->last = NULL;
-    d->filename = filename;
+    d->filename = pbo_util_strdup(filename);
     return d;
 }
 
 void pbo_clear(pbo_t d)
 {
-    struct list_entry *e = d->root;
-    while(e) {
-        struct list_entry *t = e->next;
-        free(e->data->name);
-        if(e->data->ext) {
-            free(e->data->ext->entries);
-            free(e->data->ext);
-        }
-        free(e->data);
-        free(e);
-        e = t;
-    }
-    d->root = NULL;
+    if(!d)
+        return;
+
+    pbo_clar_list(d);
+
+    free(d->filename);
+    d->filename = NULL;
 }
 
 void pbo_dispose(pbo_t d)
 {
-    pbo_clear(d);\
+    if(!d)
+        return;
+    pbo_clear(d);
     free(d);
 }
 
@@ -98,17 +95,24 @@ void pbo_set_filename(pbo_t d, const char *filename)
 
 void pbo_read_header(pbo_t d)
 {
+    if(!d)
+        return;
+
+    pbo_clear_list(d);
+
     FILE *file = fopen(d->filename, "r");
     if(!file)
         return; //I/O Error
 
     char buf[MAXNAMELEN];
     size_t file_offset = 0;
-    for(int i = 0; 1; i++) {
+    for(int i = 0;; i++) {
         int sz = pbo_util_getdelim(buf, file, sizeof buf, '\0');
         if(sz < 0)
             return; //Broken Pbo header
         struct pbo_entry *pe = malloc(sizeof *pe);
+        if(!pe)
+            return; //Malloc error
         pe->name = pbo_util_strdup(buf);
         fread(pe->properties, 4, 5, file); //Get all properties
         pe->file_offset = file_offset;
@@ -131,6 +135,9 @@ void pbo_read_header(pbo_t d)
 
 void pbo_dump_header(pbo_t d)
 {
+    if(!d)
+        return;
+
     int i = 0;
     for(struct list_entry *e = d->root; e; e = e->next) {
         struct pbo_entry *pe = e->data;
@@ -148,6 +155,9 @@ void pbo_dump_header(pbo_t d)
 
 size_t pbo_read_file(pbo_t d, const char *filename, void *buf, size_t size)
 {
+    if(!d || !filename)
+        return;
+
     struct list_entry *e = pbo_find_file(d, filename);
     if(!e)
         return 0; //Doesn't exist
@@ -176,6 +186,9 @@ void pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user)
 
 size_t pbo_get_file_size(pbo_t d, const char *filename)
 {
+    if(!d)
+        return;
+
     struct list_entry *e = pbo_find_file(d, filename);
     if(!e)
         return 0; //Doesn't Exist
@@ -185,6 +198,9 @@ size_t pbo_get_file_size(pbo_t d, const char *filename)
 
 void pbo_write_to_file(pbo_t d, const char *filename, FILE *file)
 {
+    if(!d)
+        return;
+
     struct list_entry *le = pbo_find_file(d, filename);
     if(!le)
         return; //Doesn't exist
@@ -203,7 +219,12 @@ void pbo_write_to_file(pbo_t d, const char *filename, FILE *file)
 
 static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
 {
+    if(!d)
+        return;
+
     struct list_entry *le = malloc(sizeof *le);
+    if(!le)
+        return; //Malloc Error
     le->data = pe;
 
     if(!d->root)
@@ -213,8 +234,29 @@ static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
     d->last = le;
 }
 
+static void pbo_clear_list(pbo_t d)
+{
+    struct list_entry *e = d->root;
+    while(e) {
+        struct list_entry *t = e->next;
+        free(e->data->name);
+        if(e->data->ext) {
+            free(e->data->ext->entries);
+            free(e->data->ext);
+        }
+        free(e->data);
+        free(e);
+        e = t;
+    }
+    d->root = NULL;
+    d->last = NULL;
+}
+
 static void pbo_add_header_extension(struct header_extension *he, const char *e)
 {
+    if(!d)
+        return;
+
     if(he->len % 4 == 0) {
         char **new = realloc(he->entries, (he->len + 4) * sizeof *new);
         if(!new)
@@ -226,6 +268,9 @@ static void pbo_add_header_extension(struct header_extension *he, const char *e)
 
 static struct list_entry *pbo_find_file(pbo_t d, const char *file)
 {
+    if(!d)
+        return;
+
     for(struct list_entry *e = d->root; e; e = e->next)
         if(!strcmp(e->data->name, file))
             return e;
