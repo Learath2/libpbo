@@ -201,7 +201,7 @@ pbo_error pbo_write(pbo_t d)
     if(!pe)
         goto cleanup; //Malloc Error
 
-    pe->name = "";
+    pe->name = pbo_util_strdup("");
     pe->properties[PACKING_METHOD] = 0;
     pe->properties[ORIGINAL_SIZE] = 0;
     pe->properties[RES] = 0;
@@ -294,7 +294,7 @@ pbo_error pbo_add_extension(pbo_t d, const char *e)
         if(!pe)
             goto cleanup; //Malloc Error
     
-        pe->name = "";
+        pe->name = pbo_util_strdup("");
         pe->properties[PACKING_METHOD] = 0x56657273;
         pe->properties[ORIGINAL_SIZE] = 0;
         pe->properties[RES] = 0;
