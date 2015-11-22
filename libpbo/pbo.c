@@ -140,12 +140,15 @@ pbo_error pbo_read_header(pbo_t d)
 
     char buf[MAXNAMELEN];
     size_t file_offset = 0;
+
+    struct pbo_entry *pe = NULL;
     for(int i = 0;; i++) {
         int sz = pbo_util_getdelim(buf, file, sizeof buf, '\0');
         if(sz < 0)
             return PBO_ERROR_BROKEN; //Broken Pbo header
 
-        struct pbo_entry *pe = malloc(sizeof *pe);
+        pe = NULL;
+        pe = malloc(sizeof *pe);
         if(!pe)
             goto cleanup; //Malloc error
 
