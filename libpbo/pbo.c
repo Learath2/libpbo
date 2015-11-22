@@ -131,7 +131,7 @@ pbo_error pbo_read_header(pbo_t d)
 {
     if(!d)
         return PBO_ERROR_NEXIST;
-    if(d->state != EXISTING)
+    if(d->state != CLEAR)
         return PBO_ERROR_STATE;
 
     FILE *file = fopen(d->filename, "r");
