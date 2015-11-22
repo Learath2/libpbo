@@ -11,9 +11,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifdef HAVE_WINDOWS_H
-    #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
+#ifdef HAVE_DIRECT_H
+    #include <direct.h>
 #endif
 
 #include <libpbo/pbo.h>
@@ -23,7 +22,7 @@ void create_directories(char *path)
     for(int i = 0; path[i] != '\0'; i++) {
         if(path[i] == '/') {
             path[i] = '\0';
-            #ifdef HAVE_WINDOWS_H
+            #ifdef HAVE_DIRECT_H
                 mkdir(path);
             #else
                 mkdir(path, 0755);
