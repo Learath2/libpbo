@@ -117,7 +117,7 @@ pbo_error pbo_set_filename(pbo_t d, const char *filename)
 {
     if(!d)
         return PBO_ERROR_NEXIST;
-    if(d->state != CLEAR)
+    if(d->state == EXISTING)
         return PBO_ERROR_STATE;
 
     free(d->filename);
@@ -367,7 +367,7 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
 {
     if(!d || !file)
         return PBO_ERROR_NEXIST;
-    if(d->state == EXISTING)
+    if(d->state != NEW)
         return PBO_ERROR_STATE;
 
     struct pbo_entry *pe = malloc(sizeof *pe);
