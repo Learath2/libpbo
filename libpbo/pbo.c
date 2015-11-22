@@ -75,7 +75,7 @@ pbo_t pbo_init(const char *filename)
 {
     struct pbo *d = malloc(sizeof *d);
     if(!d)
-        goto exit; //Malloc Error
+        goto cleanup; //Malloc Error
 
     d->filename = pbo_util_strdup(filename);
     if(!d->filename)
@@ -88,7 +88,6 @@ pbo_t pbo_init(const char *filename)
 
 cleanup:
     free(d);
-exit:
     return NULL;
 }
 
@@ -150,11 +149,11 @@ pbo_error pbo_read_header(pbo_t d)
 
         pe = malloc(sizeof *pe);
         if(!pe)
-            goto exit; //Malloc error
+            goto cleanup; //Malloc error
 
         pe->name = pbo_util_strdup(buf);
         if(!pe->name)
-            goto cleanup2;
+            goto cleanup;
 
         fread(pe->properties, 4, 5, file); //Get all properties
         pe->file_offset = file_offset;
@@ -162,7 +161,7 @@ pbo_error pbo_read_header(pbo_t d)
         if(!sz && !i) { //Header Extension
             pe->ext = malloc(sizeof *pe->ext);
             if(!pe->ext)
-                goto cleanup1; //Malloc Error
+                goto cleanup; //Malloc Error
             while(pbo_util_getdelim(buf, file, sizeof buf, '\0') > 0)
                 pbo_add_header_extension(pe->ext, buf);
             pbo_add_header_extension(pe->ext, "\0");
@@ -176,11 +175,10 @@ pbo_error pbo_read_header(pbo_t d)
     fclose(file);
     return PBO_SUCCESS;
 
-cleanup1:
-    free(pe->name);
-cleanup2:
+cleanup:
+    if(pe)
+        free(pe->name);
     free(pe);
-exit:
     fclose(file);
     return PBO_ERROR_MALLOC;
 }
@@ -199,7 +197,7 @@ pbo_error pbo_write(pbo_t d)
     //Add the dummy entry to indicate end of header
     struct pbo_entry *pe = malloc(sizeof *pe);
     if(!pe)
-        goto exit; //Malloc Error
+        goto cleanup; //Malloc Error
 
     pe->name = "";
     pe->properties[PACKING_METHOD] = 0;
@@ -239,7 +237,7 @@ pbo_error pbo_write(pbo_t d)
     fclose(file);
     return PBO_SUCCESS;
 
-exit:
+cleanup:
     fclose(file);
     return PBO_ERROR_MALLOC;
 }
@@ -292,7 +290,7 @@ pbo_error pbo_add_extension(pbo_t d, const char *e)
         //Add the dummy entry with the extension
         pe = malloc(sizeof *pe);
         if(!pe)
-            goto exit; //Malloc Error
+            goto cleanup; //Malloc Error
     
         pe->name = "";
         pe->properties[PACKING_METHOD] = 0x56657273;
@@ -303,14 +301,14 @@ pbo_error pbo_add_extension(pbo_t d, const char *e)
     
         pe->ext = malloc(sizeof *pe->ext);
         if(!pe->ext)
-            goto cleanup2; //Malloc Error
+            goto cleanup; //Malloc Error
 
         pe->data = NULL;
 
         //Insert the header extension entry at the beginning
         struct list_entry *le = malloc(sizeof *le);
         if(!le)
-            goto cleanup1; //Malloc Error
+            goto cleanup; //Malloc Error
 
         le->next = d->root;
         le->data = pe;
@@ -319,11 +317,10 @@ pbo_error pbo_add_extension(pbo_t d, const char *e)
 
     return pbo_add_header_extension(d->root->data->ext, e);
 
-cleanup1:
-    free(pe->ext);
-cleanup2:
+cleanup:
+    if(pe)
+        free(pe->ext);
     free(pe);
-exit:
     return PBO_ERROR_MALLOC;
 }
 
@@ -336,15 +333,15 @@ pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size)
 
     struct pbo_entry *pe = malloc(sizeof *pe);
     if(!pe)
-        goto exit; //Malloc Error
+        goto cleanup; //Malloc Error
 
     pe->name = pbo_util_strdup(name);
     if(!pe->name)
-        goto cleanup2; //Malloc Error
+        goto cleanup; //Malloc Error
 
     pe->data = malloc(size);
     if(!pe->data)
-        goto cleanup1; //Malloc Error
+        goto cleanup; //Malloc Error
 
     memcpy(pe->data, data, size);
 
@@ -357,11 +354,10 @@ pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size)
     pbo_list_add_entry(d, pe);
     return PBO_SUCCESS;
 
-cleanup1:
-    free(pe->name);
-cleanup2:
+cleanup:
+    if(pe)
+        free(pe->name);
     free(pe);
-exit:
     return PBO_ERROR_MALLOC;
 }
 
@@ -374,11 +370,11 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
 
     struct pbo_entry *pe = malloc(sizeof *pe);
     if(!pe)
-        goto exit;
+        goto cleanup;
 
     pe->name = pbo_util_strdup(name);
     if(!pe->name)
-        goto cleanup2;
+        goto cleanup;
 
     //Get file size
     fseek(file, 0, SEEK_END);
@@ -387,7 +383,7 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
 
     pe->data = malloc(filesz);
     if(!pe->data)
-        goto cleanup1;
+        goto cleanup;
 
     fread(pe->data, 1, filesz, file);
     fclose(file);
@@ -401,11 +397,10 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
     pbo_list_add_entry(d, pe);
     return PBO_SUCCESS;
 
-cleanup1:
-    free(pe->name);
-cleanup2:
+cleanup:
+    if(pe)
+        free(pe->name);
     free(pe);
-exit:
     return PBO_ERROR_MALLOC;
 }
 
