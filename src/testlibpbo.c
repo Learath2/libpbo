@@ -49,6 +49,11 @@ int main(void)
     pbo_read_header(d);
     pbo_dump_header(d);
     pbo_get_file_list(d, list_callback, d);
+    pbo_clear(d);
+    pbo_set_filename("kek.pbo");
+    pbo_init_new(d);
+    pbo_add_file_p(d, "test.txt", "test.txt");
+    pbo_write(d);
     pbo_dispose(d);
     return 0;
 }
