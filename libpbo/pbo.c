@@ -82,7 +82,8 @@ pbo_t pbo_init(const char *filename)
         goto cleanup;
 
     d->root = NULL;
-    d->last = NULL;    
+    d->last = NULL;
+    d->headersz = 0;
     d->state = CLEAR;
     return d;
 
@@ -100,6 +101,7 @@ void pbo_clear(pbo_t d)
 
     free(d->filename);
     d->filename = NULL;
+    d->headersz = 0;
     d->state = CLEAR;
 }
 
@@ -494,6 +496,7 @@ static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
     struct list_entry *le = malloc(sizeof *le);
     if(!le)
         return; //Malloc Error
+    le->next = NULL;
     le->data = pe;
 
     if(!d->root)
