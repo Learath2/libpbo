@@ -226,7 +226,7 @@ pbo_error pbo_write(pbo_t d)
 
     //Then write the data block
     for(struct list_entry *e = d->root; e; e = e->next){
-        if(*e->data->name == '\0'){
+        if(*e->data->name != '\0'){
             WRITE_N_SHA(e->data->data, 1, e->data->properties[DATA_SIZE], file, &ctx);
         }
     }
