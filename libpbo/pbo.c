@@ -115,7 +115,7 @@ void pbo_dispose(pbo_t d)
 
 pbo_error pbo_set_filename(pbo_t d, const char *filename)
 {
-    if(!d || !filename)
+    if(!d)
         return PBO_ERROR_NEXIST;
     if(d->state != CLEAR)
         return PBO_ERROR_STATE;
