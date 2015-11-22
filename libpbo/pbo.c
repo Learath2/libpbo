@@ -11,6 +11,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 #include "sha.h"
 
 #include <libpbo/pbo.h>
@@ -19,7 +21,7 @@
 
 #define WRITE_N_SHA(P,S,N,F,C) \
     fwrite((P), (S), (N), (F)); \
-    SHA1Input((C), (P), (S) * (N));
+    SHA1Input((C), (uint8_t *)(P), (S) * (N));
 
 typedef enum
 {
@@ -94,7 +96,7 @@ void pbo_clear(pbo_t d)
     if(!d)
         return;
 
-    pbo_clar_list(d);
+    pbo_clear_list(d);
 
     free(d->filename);
     d->filename = NULL;
@@ -240,7 +242,7 @@ cleanup:
 size_t pbo_read_file(pbo_t d, const char *filename, void *buf, size_t size)
 {
     if(!d || !filename || d->state != EXISTING)
-        return;
+        return 0;
 
     struct list_entry *e = pbo_find_file(d, filename);
     if(!e)
@@ -264,7 +266,7 @@ pbo_error pbo_init_new(pbo_t d)
     if(!d)
         return PBO_ERROR_NEXIST;
     if(d->state != CLEAR)
-        return PBO_ERROR_STATE
+        return PBO_ERROR_STATE;
 
     //Add the dummy entry with the extension
     struct pbo_entry *pe = malloc(sizeof *pe);
@@ -300,7 +302,7 @@ pbo_error pbo_add_extension(pbo_t d, const char *e)
     if(d->state != NEW)
         return PBO_ERROR_STATE;
 
-    pbo_add_header_extension(d->root->ext, e);
+    pbo_add_header_extension(d->root->data->ext, e);
     return PBO_SUCCESS;
 }
 
@@ -454,9 +456,6 @@ void pbo_dump_header(pbo_t d)
 
 static void pbo_add_header_extension(struct header_extension *he, const char *e)
 {
-    if(!d)
-        return;
-
     if(he->len % 4 == 0) {
         char **new = realloc(he->entries, (he->len + 4) * sizeof *new);
         if(!new)
@@ -504,7 +503,7 @@ static void pbo_clear_list(pbo_t d)
 static struct list_entry *pbo_find_file(pbo_t d, const char *file)
 {
     if(!d)
-        return;
+        return NULL;
 
     for(struct list_entry *e = d->root; e; e = e->next)
         if(!strcmp(e->data->name, file))
