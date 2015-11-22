@@ -2,10 +2,19 @@
  * libpbo - A library to work with Arma PBO files
  * See README for contact-, COPYING for license information. */
  
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_WINDOWS_H
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#endif
 
 #include <libpbo/pbo.h>
 
@@ -14,7 +23,11 @@ void create_directories(char *path)
     for(int i = 0; path[i] != '\0'; i++) {
         if(path[i] == '/') {
             path[i] = '\0';
-            mkdir(path, 0755);
+            #ifdef HAVE_WINDOWS_H
+                mkdir(path);
+            #else
+                mkdir(path, 0755);
+            #endif
             path[i] = '/';
         }
     }

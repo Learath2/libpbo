@@ -17,7 +17,7 @@ AC_PROG_CC_C99
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([stdlib.h windows.h])
 
 AC_CONFIG_FILES([Makefile
 		 include/Makefile
