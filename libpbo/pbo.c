@@ -525,6 +525,8 @@ static void pbo_clear_list(pbo_t d)
         struct list_entry *t = e->next;
         free(e->data->name);
         if(e->data->ext) {
+            for(int i = 0; i < e->data->ext->len; i++)
+                free(e->data->ext->entries[i]);
             free(e->data->ext->entries);
             free(e->data->ext);
         }
