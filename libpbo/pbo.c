@@ -528,6 +528,7 @@ static void pbo_clear_list(pbo_t d)
             free(e->data->ext->entries);
             free(e->data->ext);
         }
+        free(e->data->data);
         free(e->data);
         free(e);
         e = t;
