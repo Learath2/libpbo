@@ -164,6 +164,10 @@ pbo_error pbo_read_header(pbo_t d)
             pe->ext = malloc(sizeof *pe->ext);
             if(!pe->ext)
                 goto cleanup; //Malloc Error
+
+            pe->ext->len = 0;
+            pe->ext->entries = NULL;
+            
             while(pbo_util_getdelim(buf, file, sizeof buf, '\0') > 0)
                 pbo_add_header_extension(pe->ext, buf);
             pbo_add_header_extension(pe->ext, "\0");
@@ -353,6 +357,8 @@ pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size)
     pe->properties[TIME_STAMP] = (uint32_t)time(NULL);
     pe->properties[DATA_SIZE] = size;
 
+    pe->ext = NULL;
+
     pbo_list_add_entry(d, pe);
     return PBO_SUCCESS;
 
@@ -395,6 +401,8 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
     pe->properties[RES] = 0;
     pe->properties[TIME_STAMP] = (uint32_t)time(NULL);
     pe->properties[DATA_SIZE] = filesz;
+
+    pe->ext = NULL;
 
     pbo_list_add_entry(d, pe);
     return PBO_SUCCESS;
