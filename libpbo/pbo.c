@@ -157,6 +157,8 @@ pbo_error pbo_read_header(pbo_t d)
         if(!pe->name)
             goto cleanup;
 
+        pe->ext = NULL;
+
         fread(pe->properties, 4, 5, file); //Get all properties
         pe->file_offset = file_offset;
         file_offset += pe->properties[DATA_SIZE];
@@ -167,7 +169,7 @@ pbo_error pbo_read_header(pbo_t d)
 
             pe->ext->len = 0;
             pe->ext->entries = NULL;
-            
+
             while(pbo_util_getdelim(buf, file, sizeof buf, '\0') > 0)
                 pbo_add_header_extension(pe->ext, buf);
             pbo_add_header_extension(pe->ext, "\0");
@@ -211,7 +213,9 @@ pbo_error pbo_write(pbo_t d)
     pe->properties[RES] = 0;
     pe->properties[TIME_STAMP] = 0;
     pe->properties[DATA_SIZE] = 0;
+    pe->file_offset = 0;
     pe->data = NULL;
+    pe->ext = NULL;
     pbo_list_add_entry(d, pe);
 
     SHA1Context ctx;
