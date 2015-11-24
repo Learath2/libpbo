@@ -158,6 +158,7 @@ pbo_error pbo_read_header(pbo_t d)
             goto cleanup;
 
         pe->ext = NULL;
+        pe->data = NULL;
 
         fread(pe->properties, 4, 5, file); //Get all properties
         pe->file_offset = file_offset;
