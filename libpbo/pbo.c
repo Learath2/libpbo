@@ -65,7 +65,7 @@ struct pbo {
 };
 
 static pbo_error pbo_add_header_extension(struct header_extension *he, const char *e);
-static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe);
+static pbo_error pbo_list_add_entry(pbo_t d, struct pbo_entry *pe);
 static void pbo_clear_list(pbo_t d);
 static struct list_entry *pbo_find_file(pbo_t d, const char *file);
 static int pbo_util_getdelim(unsigned char *dst, FILE *src, size_t dstsz, char delim);
@@ -153,12 +153,12 @@ pbo_error pbo_read_header(pbo_t d)
         if(!pe)
             goto cleanup; //Malloc error
 
+        pe->ext = NULL;
+        pe->data = NULL;
+
         pe->name = pbo_util_strdup(buf);
         if(!pe->name)
             goto cleanup;
-
-        pe->ext = NULL;
-        pe->data = NULL;
 
         fread(pe->properties, 4, 5, file); //Get all properties
         pe->file_offset = file_offset;
@@ -171,11 +171,15 @@ pbo_error pbo_read_header(pbo_t d)
             pe->ext->len = 0;
             pe->ext->entries = NULL;
 
+            //Add Header extension can fail should handle that
             while(pbo_util_getdelim(buf, file, sizeof buf, '\0') > 0)
                 pbo_add_header_extension(pe->ext, buf);
             pbo_add_header_extension(pe->ext, "\0");
         }
-        pbo_list_add_entry(d, pe);
+
+        if(pbo_list_add_entry(d, pe))
+            goto cleanup;
+
         if(!sz && i)
             break;
     }
@@ -185,8 +189,10 @@ pbo_error pbo_read_header(pbo_t d)
     return PBO_SUCCESS;
 
 cleanup:
-    if(pe)
+    if(pe){
         free(pe->name);
+        free(pe->ext);
+    }
     free(pe);
     fclose(file);
     return PBO_ERROR_MALLOC;
@@ -209,6 +215,9 @@ pbo_error pbo_write(pbo_t d)
         goto cleanup; //Malloc Error
 
     pe->name = pbo_util_strdup("");
+    if(!pe->name)
+        goto cleanup;
+
     pe->properties[PACKING_METHOD] = 0;
     pe->properties[ORIGINAL_SIZE] = 0;
     pe->properties[RES] = 0;
@@ -217,7 +226,8 @@ pbo_error pbo_write(pbo_t d)
     pe->file_offset = 0;
     pe->data = NULL;
     pe->ext = NULL;
-    pbo_list_add_entry(d, pe);
+    if(pbo_list_add_entry(d, pe))
+        goto cleanup;
 
     SHA1Context ctx;
     SHA1Reset(&ctx);
@@ -250,6 +260,9 @@ pbo_error pbo_write(pbo_t d)
 
 cleanup:
     fclose(file);
+    if(pe)
+        free(pe->name);
+    free(pe);
     return PBO_ERROR_MALLOC;
 }
 
@@ -276,7 +289,6 @@ size_t pbo_read_file(pbo_t d, const char *filename, void *buf, size_t size)
     return sz;
 }
 
-//TODO: Header extension at beginning is not mandatory
 pbo_error pbo_init_new(pbo_t d)
 {
     if(!d)
@@ -364,8 +376,7 @@ pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size)
 
     pe->ext = NULL;
 
-    pbo_list_add_entry(d, pe);
-    return PBO_SUCCESS;
+    return pbo_list_add_entry(d, pe);
 
 cleanup:
     if(pe)
@@ -409,8 +420,7 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
 
     pe->ext = NULL;
 
-    pbo_list_add_entry(d, pe);
-    return PBO_SUCCESS;
+    return  pbo_list_add_entry(d, pe);
 
 cleanup:
     if(pe)
@@ -501,14 +511,15 @@ static pbo_error pbo_add_header_extension(struct header_extension *he, const cha
     return PBO_SUCCESS;
 }
 
-static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
+static pbo_error pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
 {
     if(!d)
         return;
 
     struct list_entry *le = malloc(sizeof *le);
     if(!le)
-        return; //Malloc Error
+        return PBO_ERROR_MALLOC; //Malloc Error
+
     le->next = NULL;
     le->data = pe;
 
@@ -517,6 +528,8 @@ static void pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
     else
         d->last->next = le;
     d->last = le;
+
+    return PBO_SUCCESS;
 }
 
 static void pbo_clear_list(pbo_t d)
