@@ -514,7 +514,7 @@ static pbo_error pbo_add_header_extension(struct header_extension *he, const cha
 static pbo_error pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
 {
     if(!d)
-        return;
+        return PBO_ERROR_NEXIST;
 
     struct list_entry *le = malloc(sizeof *le);
     if(!le)
