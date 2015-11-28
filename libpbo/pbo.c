@@ -253,6 +253,7 @@ pbo_error pbo_write(pbo_t d)
     //Finalize SHA and write it at the end
     uint8_t sha[SHA1HashSize];
     SHA1Result(&ctx, sha);
+    fputc('\0', file); //Format specifies a null before the hash
     fwrite(sha, 1, SHA1HashSize, file);
 
     fclose(file);
