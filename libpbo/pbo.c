@@ -508,8 +508,17 @@ static pbo_error pbo_add_header_extension(struct header_extension *he, const cha
             return PBO_ERROR_MALLOC; //Malloc Error
         he->entries = new;
     }
-    he->entries[he->len++] = pbo_util_strdup(e); //Can't quite check for this as idk how to cleanup ^^
+    he->entries[he->len] = pbo_util_strdup(e);
+    if(!he->entries[he->len])
+        goto cleanup;
+    he->len++;
+
     return PBO_SUCCESS;
+
+cleanup:
+    if(he->len % 4 == 0)
+        char **new = realloc(he->entries, (he->len) * sizeof *new);
+    return PBO_ERROR_MALLOC;
 }
 
 static pbo_error pbo_list_add_entry(pbo_t d, struct pbo_entry *pe)
