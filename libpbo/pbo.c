@@ -438,10 +438,12 @@ pbo_error pbo_add_file_p(pbo_t d, const char *name, const char *path)
     return pbo_add_file_f(d, name, file);
 }
 
-void pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user)
+pbo_error pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user)
 {
     if(!d)
-        return;
+        return PBO_ERROR_NEXIST;
+    if(d->state != EXISTING)
+        return PBO_ERROR_STATE;
 
     for(struct list_entry *e = d->root; e; e = e->next)
         cb(e->data->name, user);

@@ -35,7 +35,7 @@ pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size);
 pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file);
 pbo_error pbo_add_file_p(pbo_t d, const char *name, const char *path);
 
-void pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user);
+pbo_error pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user);
 size_t pbo_get_file_size(pbo_t d, const char *filename);
 
 pbo_error pbo_write_to_file(pbo_t d, const char *filename, FILE *file);
