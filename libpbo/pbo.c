@@ -297,7 +297,6 @@ pbo_error pbo_init_new(pbo_t d)
     if(d->state != CLEAR)
         return PBO_ERROR_STATE;
 
-    pbo_clear(d);
     d->state = NEW;
     return PBO_SUCCESS;
 }
