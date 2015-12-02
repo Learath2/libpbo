@@ -29,6 +29,9 @@ pbo_error pbo_write(pbo_t d);
 
 size_t pbo_read_file(pbo_t d, const char *filename, void *buf, size_t size);
 
+const char *pbo_read_extension(pbo_t d, int ind);
+int pbo_get_extension_count(pbo_t d);
+
 pbo_error pbo_init_new(pbo_t d);
 pbo_error pbo_add_extension(pbo_t d, const char *e);
 pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size);

@@ -229,6 +229,10 @@ pbo_error pbo_write(pbo_t d)
     if(pbo_list_add_entry(d, pe))
         goto cleanup;
 
+    //Finalize the header extension at d->root
+    if(*d->root->data->name == '\0')
+        pbo_add_header_extension(d->root->data->ext, "");
+
     SHA1Context ctx;
     SHA1Reset(&ctx);
 
@@ -288,6 +292,22 @@ size_t pbo_read_file(pbo_t d, const char *filename, void *buf, size_t size)
     size_t sz = fread(buf, 1, e->data->properties[DATA_SIZE], file);
     fclose(file);
     return sz;
+}
+
+const char *pbo_read_extension(pbo_t d, int ind)
+{
+    if(!d || d->state != EXISTING || !d->root->data->ext)
+        return NULL;
+
+    return d->root->data->ext->entries[ind];
+}
+
+int pbo_get_extension_count(pbo_t d)
+{
+    if(!d || d->state != EXISTING || !d->root->data->ext)
+        return -1;
+    
+    return d->root->data->ext->len;
 }
 
 pbo_error pbo_init_new(pbo_t d)
