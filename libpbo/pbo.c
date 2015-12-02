@@ -519,7 +519,7 @@ static pbo_error pbo_add_header_extension(struct header_extension *he, const cha
 
 cleanup:
     if(he->len % 4 == 0)
-        he->entries = realloc(he->entries, (he->len) * sizeof *new);
+        he->entries = realloc(he->entries, (he->len) * sizeof *he->entries);
     return PBO_ERROR_MALLOC;
 }
 
