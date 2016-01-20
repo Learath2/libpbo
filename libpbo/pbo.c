@@ -306,7 +306,7 @@ int pbo_get_extension_count(pbo_t d)
 {
     if(!d || d->state != EXISTING || !d->root->data->ext)
         return -1;
-    
+
     return d->root->data->ext->len;
 }
 
@@ -334,19 +334,24 @@ pbo_error pbo_add_extension(pbo_t d, const char *e)
         pe = malloc(sizeof *pe);
         if(!pe)
             goto cleanup; //Malloc Error
-    
+
         pe->name = pbo_util_strdup("");
         pe->properties[PACKING_METHOD] = 0x56657273;
         pe->properties[ORIGINAL_SIZE] = 0;
         pe->properties[RES] = 0;
         pe->properties[TIME_STAMP] = 0;
         pe->properties[DATA_SIZE] = 0;
-    
+
+        pe->file_offset = 0;
+
         pe->ext = malloc(sizeof *pe->ext);
         if(!pe->ext)
             goto cleanup; //Malloc Error
 
         pe->data = NULL;
+
+        pe->ext->len = 0;
+        pe->ext->entries = NULL;
 
         //Insert the header extension entry at the beginning
         struct list_entry *le = malloc(sizeof *le);
@@ -394,6 +399,7 @@ pbo_error pbo_add_file_d(pbo_t d, const char *name, void *data,  size_t size)
     pe->properties[TIME_STAMP] = (uint32_t)time(NULL);
     pe->properties[DATA_SIZE] = size;
 
+    pe->file_offset = 0;
     pe->ext = NULL;
 
     return pbo_list_add_entry(d, pe);
@@ -454,7 +460,10 @@ pbo_error pbo_add_file_p(pbo_t d, const char *name, const char *path)
     FILE *file = fopen(path, "r");
     if(!file)
         return PBO_ERROR_IO;
-    return pbo_add_file_f(d, name, file);
+
+    pbo_error ret = pbo_add_file_f(d, name, file);
+    fclose(file);
+    return ret;
 }
 
 pbo_error pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user)
