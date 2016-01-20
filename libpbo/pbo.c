@@ -436,7 +436,7 @@ pbo_error pbo_add_file_f(pbo_t d, const char *name, FILE *file)
         goto cleanup;
 
     fread(pe->data, 1, filesz, file);
-    fclose(file);
+    rewind(file);
 
     pe->properties[PACKING_METHOD] = 0;
     pe->properties[ORIGINAL_SIZE] = filesz;
