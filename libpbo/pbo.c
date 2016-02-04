@@ -205,6 +205,9 @@ pbo_error pbo_write(pbo_t d)
     if(d->state != NEW)
         return PBO_ERROR_STATE;
 
+    if(d->root == NULL)
+        return PBO_ERROR_STATE;
+
     FILE *file = fopen(d->filename, "w");
     if(!file)
         return PBO_ERROR_IO;
