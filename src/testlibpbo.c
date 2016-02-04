@@ -1,7 +1,7 @@
 /* testlibpbo.c - (C) 2015, Emir Marincic
  * libpbo - A library to work with Arma PBO files
  * See README for contact-, COPYING for license information. */
- 
+
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -18,7 +18,7 @@
 #include <libpbo/pbo.h>
 
 void create_directories(char *path)
-{    
+{
     for(int i = 0; path[i] != '\0'; i++) {
         if(path[i] == '/') {
             path[i] = '\0';
@@ -65,6 +65,8 @@ int main(void)
     pbo_init_new(d);
     pbo_set_filename(d, "write.pbo");
     pbo_add_file_p(d, "test.txt", "test.txt");
+    pbo_add_file_p(d, "test.txt", "first.txt");
+    pbo_add_file_p(d, "test.txt", "second.txt");
     pbo_write(d);
     pbo_dispose(d);
     return 0;
