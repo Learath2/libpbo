@@ -244,7 +244,7 @@ pbo_error pbo_write(pbo_t d)
         WRITE_N_SHA(e->data->name, 1, strlen(e->data->name) + 1, file, &ctx);
         WRITE_N_SHA(e->data->properties, 4, 5, file, &ctx);
         if(e->data->ext) {
-            for(int i = 0; i < e->data->ext->len; i++) {
+            for(unsigned int i = 0; i < e->data->ext->len; i++) {
                 WRITE_N_SHA(e->data->ext->entries[i], 1, strlen(e->data->ext->entries[i]) + 1, file, &ctx);
             }
         }
@@ -478,6 +478,8 @@ pbo_error pbo_get_file_list(pbo_t d, pbo_listcb cb, void *user)
 
     for(struct list_entry *e = d->root; e; e = e->next)
         cb(e->data->name, user);
+
+    return PBO_SUCCESS;
 }
 
 size_t pbo_get_file_size(pbo_t d, const char *filename)
@@ -511,6 +513,8 @@ pbo_error pbo_write_to_file(pbo_t d, const char *filename, FILE *file)
     fread(buf, 1, sz, f);
     fwrite(buf, 1, sz, file);
     fclose(f);
+
+    return PBO_SUCCESS;
 }
 
 void pbo_dump_header(pbo_t d)
@@ -526,7 +530,7 @@ void pbo_dump_header(pbo_t d)
             printf("\tproperties[%d] = %d\n", i, pe->properties[i]);
         if(pe->ext) {
             printf("\tHeaderExtension:\n");
-            for(int i = 0; i < pe->ext->len; i++)
+            for(unsigned int i = 0; i < pe->ext->len; i++)
                 printf("\t\tHEntry: %s\n", pe->ext->entries[i]);
         }
         i++;
@@ -582,7 +586,7 @@ static void pbo_clear_list(pbo_t d)
         struct list_entry *t = e->next;
         free(e->data->name);
         if(e->data->ext) {
-            for(int i = 0; i < e->data->ext->len; i++)
+            for(unsigned int i = 0; i < e->data->ext->len; i++)
                 free(e->data->ext->entries[i]);
             free(e->data->ext->entries);
             free(e->data->ext);
